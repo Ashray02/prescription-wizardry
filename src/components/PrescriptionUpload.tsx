@@ -42,7 +42,7 @@ const PrescriptionUpload = ({ userId }: PrescriptionUploadProps) => {
   const analyzeInteractions = async (extractedText: string, prescriptionId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke("analyze-prescription", {
-        body: { extractedText, userId, prescriptionId },
+        body: { extractedText, prescriptionId },
       });
 
       if (error) throw error;

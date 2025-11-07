@@ -4,7 +4,30 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+// Input validation
+const validateInput = (extractedText: string, prescriptionId: string) => {
+  if (!extractedText || typeof extractedText !== 'string') {
+    throw new Error('extractedText is required and must be a string');
+  }
+  if (extractedText.length > 50000) {
+    throw new Error('extractedText must be less than 50000 characters');
+  }
+  if (!prescriptionId || typeof prescriptionId !== 'string') {
+    throw new Error('prescriptionId is required and must be a string');
+  }
+  // Basic UUID validation
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(prescriptionId)) {
+    throw new Error('prescriptionId must be a valid UUID');
+  }
+  return {
+    extractedText: extractedText.trim(),
+    prescriptionId: prescriptionId.trim()
+  };
 };
 
 serve(async (req) => {
@@ -13,16 +36,51 @@ serve(async (req) => {
   }
 
   try {
-    const { extractedText, userId, prescriptionId } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // Authenticate user from JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Verify JWT and get authenticated user
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error("Authentication error:", authError);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const userId = user.id; // Use authenticated user ID, not from request body
+
+    // Parse and validate request body
+    const requestBody = await req.json();
+    const { extractedText, prescriptionId } = validateInput(
+      requestBody.extractedText,
+      requestBody.prescriptionId
+    );
+    
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
 
     console.log("Analyzing prescription for user:", userId);
 
@@ -85,7 +143,7 @@ serve(async (req) => {
 
     // Check interactions between new and existing medications
     const interactions = [];
-    const currentMeds = medications?.map((m) => m.medication_name) || [];
+    const currentMeds = medications?.map((m: any) => m.medication_name) || [];
     const allMeds = [...currentMeds, ...extractedMedications];
 
     for (let i = 0; i < allMeds.length; i++) {

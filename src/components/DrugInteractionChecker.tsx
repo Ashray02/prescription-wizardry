@@ -53,11 +53,16 @@ const DrugInteractionChecker = ({ userId }: DrugInteractionCheckerProps) => {
       return;
     }
 
+    if (medication1.length > 200 || medication2.length > 200) {
+      toast.error("Medication names must be less than 200 characters");
+      return;
+    }
+
     setChecking(true);
 
     try {
       const { data, error } = await supabase.functions.invoke("check-drug-interaction", {
-        body: { medication1, medication2, userId },
+        body: { medication1, medication2 },
       });
 
       if (error) throw error;
