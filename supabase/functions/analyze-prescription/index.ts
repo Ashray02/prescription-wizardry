@@ -73,6 +73,16 @@ serve(async (req) => {
 
     console.log("Extracted medications:", extractedMedications);
 
+    // Save extracted medications to prescription record
+    const { error: updateError } = await supabase
+      .from("prescriptions")
+      .update({ extracted_medications: extractedMedications })
+      .eq("id", prescriptionId);
+
+    if (updateError) {
+      console.error("Error saving extracted medications:", updateError);
+    }
+
     // Check interactions between new and existing medications
     const interactions = [];
     const currentMeds = medications?.map((m) => m.medication_name) || [];

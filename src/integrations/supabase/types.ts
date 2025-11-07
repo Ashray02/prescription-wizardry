@@ -157,6 +157,7 @@ export type Database = {
           analyzed: boolean
           created_at: string
           doctor_name: string | null
+          extracted_medications: Json | null
           extracted_text: string | null
           id: string
           image_url: string
@@ -167,6 +168,7 @@ export type Database = {
           analyzed?: boolean
           created_at?: string
           doctor_name?: string | null
+          extracted_medications?: Json | null
           extracted_text?: string | null
           id?: string
           image_url: string
@@ -177,6 +179,7 @@ export type Database = {
           analyzed?: boolean
           created_at?: string
           doctor_name?: string | null
+          extracted_medications?: Json | null
           extracted_text?: string | null
           id?: string
           image_url?: string

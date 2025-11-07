@@ -22,6 +22,7 @@ interface Prescription {
   prescription_date: string;
   image_url: string;
   extracted_text: string | null;
+  extracted_medications: string[] | null;
   analyzed: boolean;
   created_at: string;
 }
@@ -44,7 +45,12 @@ const PrescriptionHistory = ({ userId }: PrescriptionHistoryProps) => {
         .order("prescription_date", { ascending: false });
 
       if (error) throw error;
-      setPrescriptions(data || []);
+      setPrescriptions((data || []).map(item => ({
+        ...item,
+        extracted_medications: Array.isArray(item.extracted_medications) 
+          ? item.extracted_medications as string[]
+          : null
+      })));
     } catch (error) {
       console.error("Error fetching prescriptions:", error);
     } finally {
@@ -150,6 +156,20 @@ const PrescriptionHistory = ({ userId }: PrescriptionHistoryProps) => {
                     className="w-full rounded-lg border"
                   />
                 </div>
+
+                {selectedPrescription.extracted_medications && 
+                 selectedPrescription.extracted_medications.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Extracted Medications</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPrescription.extracted_medications.map((med, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-sm">
+                          {med}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {selectedPrescription.extracted_text && (
                   <div>
