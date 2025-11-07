@@ -12,6 +12,7 @@ import Allergies from "@/components/Allergies";
 import PrescriptionUpload from "@/components/PrescriptionUpload";
 import DrugInteractionChecker from "@/components/DrugInteractionChecker";
 import Profile from "@/components/Profile";
+import PrescriptionHistory from "@/components/PrescriptionHistory";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -101,12 +102,20 @@ const Dashboard = () => {
                   Medications
                 </Button>
                 <Button
-                  variant={activeTab === "history" ? "default" : "ghost"}
+                  variant={activeTab === "medical-history" ? "default" : "ghost"}
                   className="w-full justify-start"
-                  onClick={() => setActiveTab("history")}
+                  onClick={() => setActiveTab("medical-history")}
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Medical History
+                </Button>
+                <Button
+                  variant={activeTab === "prescriptions" ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab("prescriptions")}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Prescription History
                 </Button>
                 <Button
                   variant={activeTab === "allergies" ? "default" : "ghost"}
@@ -148,7 +157,8 @@ const Dashboard = () => {
             {activeTab === "profile" && <Profile userId={user.id} />}
             {activeTab === "upload" && <PrescriptionUpload userId={user.id} />}
             {activeTab === "medications" && <CurrentMedications userId={user.id} />}
-            {activeTab === "history" && <MedicalHistory userId={user.id} />}
+            {activeTab === "medical-history" && <MedicalHistory userId={user.id} />}
+            {activeTab === "prescriptions" && <PrescriptionHistory userId={user.id} />}
             {activeTab === "allergies" && <Allergies userId={user.id} />}
             {activeTab === "interactions" && <DrugInteractionChecker userId={user.id} />}
           </div>
